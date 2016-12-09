@@ -9,6 +9,7 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
+import com.amazonaws.services.ec2.model.Address;
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
 import com.amazonaws.services.ec2.model.DescribeInstancesResult;
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult;
@@ -20,6 +21,7 @@ import com.amazonaws.services.ec2.model.IpPermission;
 import com.amazonaws.services.ec2.model.Reservation;
 import com.amazonaws.services.ec2.model.SecurityGroup;
 import com.amazonaws.services.ec2.model.Volume;
+import com.amazonaws.services.ec2.model.VolumeState;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancingClient;
 import java.util.ArrayList;
@@ -148,10 +150,10 @@ public class EC2UtilsImpl implements EC2Utils {
      */
     public List<Volume> getAllEBSVolumes() throws AmazonClientException {
         
-        List<Volume> allVolumes;
+        List<Volume> allEBSVolumes;
         try {
             DescribeVolumesResult describeVolumesResult = this.amazonEc2.describeVolumes();
-            allVolumes = describeVolumesResult.getVolumes();
+            allEBSVolumes = describeVolumesResult.getVolumes();
             
         } catch(AmazonClientException e) {
             System.out.println("ERROR : fetching volumes.");
@@ -159,9 +161,9 @@ public class EC2UtilsImpl implements EC2Utils {
             throw e;
         }
         
-        List<String> allVolumesIds = allVolumes.stream().map(e -> e.getVolumeId()).collect(Collectors.toList());
+        List<String> allVolumesIds = allEBSVolumes.stream().map(e -> e.getVolumeId()).collect(Collectors.toList());
         System.out.println("INFO : All Volumes Ids : " + allVolumesIds);
-        return allVolumes;
+        return allEBSVolumes;
     }
     
      /**
@@ -174,14 +176,18 @@ public class EC2UtilsImpl implements EC2Utils {
         
         List<Volume> allEncryptedEBSVolumes = new ArrayList<Volume>();
         
-        for(Volume volume : allEBSVolumes) {
-            if( volume.isEncrypted()) {
-                allEncryptedEBSVolumes.add(volume);
+        if ( allEBSVolumes != null || allEBSVolumes.size() > 0 ) {
+            
+            for(Volume volume : allEBSVolumes) {
+                if( volume.isEncrypted()) {
+                    allEncryptedEBSVolumes.add(volume);
+                }
             }
+
+            List<String> allEncryptedVolumesIds = allEncryptedEBSVolumes.stream().map(e -> e.getVolumeId()).collect(Collectors.toList());
+            System.out.println("INFO : All Encrypted EBS volumes : " + allEncryptedVolumesIds);
         }
         
-        List<String> allEncryptedVolumesIds = allEncryptedEBSVolumes.stream().map(e -> e.getVolumeId()).collect(Collectors.toList());
-        System.out.println("INFO : All Encrypted EBS volumes : " + allEncryptedVolumesIds);
         return allEncryptedEBSVolumes;
     }
     
@@ -191,15 +197,22 @@ public class EC2UtilsImpl implements EC2Utils {
      */
     public List<Volume> getAllNonEncryptedEBSVolumes(List<Volume> allEBSVolumes) {
         
+        List<Volume> allEncryptedEBSVolumes;
+        List<Volume> allNonEncryptedEBSVolumes = new ArrayList<>();
         
-        List<Volume> allEncryptedEBSVolumes = getAllEncryptedEBSVolumes(allEBSVolumes);
+        if ( allEBSVolumes != null || allEBSVolumes.size() > 0 ) {
         
-        //Non encrypted volumes.
-        allEBSVolumes.removeAll(allEncryptedEBSVolumes);
-        List<Volume> allNonEncryptedEBSVolumes = allEBSVolumes;
+            allEncryptedEBSVolumes = getAllEncryptedEBSVolumes(allEBSVolumes);
         
-        List<String> allNonEncryptedEBSVolumesIds = allNonEncryptedEBSVolumes.stream().map(e -> e.getVolumeId()).collect(Collectors.toList());
-        System.out.println("INFO : All Non Encrypted EBS volumes : " + allNonEncryptedEBSVolumesIds);
+            //Non encrypted volumes.
+            allEBSVolumes.removeAll(allEncryptedEBSVolumes);
+            allNonEncryptedEBSVolumes = allEBSVolumes;
+        
+            List<String> allNonEncryptedEBSVolumesIds = allNonEncryptedEBSVolumes.stream().map(e -> e.getVolumeId()).collect(Collectors.toList());
+            System.out.println("INFO : Number of Non Encrypted EBS Volumes : " + allNonEncryptedEBSVolumes.size());
+            System.out.println("INFO : All Non Encrypted EBS volumes : " + allNonEncryptedEBSVolumesIds);
+        }
+        
         return allNonEncryptedEBSVolumes;
         
     }
@@ -249,18 +262,23 @@ public class EC2UtilsImpl implements EC2Utils {
      */
     public List<Volume> getAllEBSNonRootVolumes(List<Volume> allEBSVolumes, List<Volume> allEBSRootVolumes) {
        
-       System.out.println("INFO : Main Code : allEBSVolumes size : " + allEBSVolumes.size());
-       System.out.println("INFO : Main Code : allEBSVolumes  : " + allEBSVolumes);
-       System.out.println("INFO : Main Code : allEBSRootVolumes size : " + allEBSRootVolumes.size());
-       System.out.println("INFO : Main Code : allEBSRootVolumes : " + allEBSRootVolumes);
-       allEBSVolumes.removeAll(allEBSRootVolumes);
+       List<Volume> allEBSNonRootVolumes = new ArrayList<>();
        
-       System.out.println("INFO : Number of Non Root EBS volumes Size : " + allEBSVolumes.size());
-       System.out.println("INFO : Number of Non Root EBS volumes : " + allEBSVolumes);
-       List<String> allEBSNonRootVolumeIds = allEBSVolumes.stream().map(e -> e.getVolumeId()).collect(Collectors.toList());
-       System.out.println("INFO : EBS Non Root Volumes IDs : " + allEBSNonRootVolumeIds);
+       if ( allEBSVolumes != null || allEBSVolumes.size() > 0 ) { 
        
-       return allEBSVolumes;
+            if (allEBSRootVolumes == null ) {
+                allEBSRootVolumes = new ArrayList<>();
+            }
+            
+            allEBSVolumes.removeAll(allEBSRootVolumes);
+            allEBSNonRootVolumes = allEBSVolumes;
+            List<String> allEBSNonRootVolumeIds = allEBSNonRootVolumes.stream().map(e -> e.getVolumeId()).collect(Collectors.toList());
+            System.out.println("INFO : Number of EBS Non Root Volumes IDs : " + allEBSNonRootVolumeIds.size());
+            System.out.println("INFO : EBS Non Root Volumes IDs : " + allEBSNonRootVolumeIds);
+            
+       }
+       
+       return allEBSNonRootVolumes;
     }
     
     /**
@@ -288,11 +306,84 @@ public class EC2UtilsImpl implements EC2Utils {
             }
         }
         
-        System.out.println("INFO: NUMBER OF EBS ROOT VOLUMES : " + allEBSRootVolumes.size());
+        System.out.println("INFO: Number of EBS Root Volumes : " + allEBSRootVolumes.size());
         List<String> volumeIds = allEBSRootVolumes.stream().map(e -> e.getVolumeId()).collect(Collectors.toList());
-        System.out.println("INFO: EBS ROOT VOLUMES : " + volumeIds);
+        System.out.println("INFO: EBS Root Volumes : " + volumeIds);
         
         return allEBSRootVolumes;
     }
+    
+    /**
+     * This method returns list of EBS volumes which are available.
+     * @return returns list of EBS volumes which are available.
+     */
+    public List<Volume> getEBSVolumesAvailable(List<Volume> allEBSVolumes) {
+        
+        List<Volume> ebsVolumesAvailable = new ArrayList<>();
+        
+        for(Volume volume: allEBSVolumes) {
+            if(volume.getState().equalsIgnoreCase(VolumeState.Available.toString())) {
+                ebsVolumesAvailable.add(volume);
+            }
+        }
+        
+        System.out.println("INFO : Number of EBS volumes not in use : " + ebsVolumesAvailable.size());
+        List<String> volumeIds = ebsVolumesAvailable.stream().map(e -> e.getVolumeId()).collect(Collectors.toList());
+        System.out.println("INFO: EBS volumes not in use : " + volumeIds);
+        
+        return ebsVolumesAvailable;
+    }
+    
+    /**
+     * This method returns all EIPs.
+     * @return return all EIPs
+     * @throws AmazonClientException 
+     */
+    public List<Address> getAllEIPs() throws AmazonClientException {
+        
+        List<Address> allEIPs = new ArrayList<>();
+        
+        try {
+            
+            allEIPs = this.amazonEc2.describeAddresses().getAddresses();
+ 
+        } catch(AmazonClientException e) {
+            
+            System.out.println("ERROR : fetching EIPs");
+            e.printStackTrace();
+            throw e;
+            
+        }
+        
+        List<String> EIPs = allEIPs.stream().map( e -> e.getPublicIp()).collect(Collectors.toList());
+        System.out.println("INFO : All EIPs : " + EIPs);
+        return allEIPs;
+        
+    }
+    
+    /**
+     * This method returns all unused EIPs
+     * @return returns all unused EIPs
+     */
+    public List<Address> getAllUnusedEIPs(List<Address> allEIPs) {
+        
+        List<Address> allUnusedEIPs = new ArrayList<>();
+        
+        if ( allEIPs != null || allEIPs.size() >0 ) {
+            for(Address address: allEIPs) {
+                if (address.getInstanceId() == null) {
+                    allUnusedEIPs.add(address);
+                }
+            }
+        }
+        
+        System.out.println("INFO : Number of Unused EIPs : " + allUnusedEIPs.size());
+        List<String> EIPs = allUnusedEIPs.stream().map( e -> e.getPublicIp()).collect(Collectors.toList());
+        System.out.println("INFO : Unused EIPs : " + EIPs);
+        
+        return allUnusedEIPs;
+        
+    }
+    
     
 }

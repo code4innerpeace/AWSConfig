@@ -8,6 +8,7 @@ package com.vb.aws.services.compute.ec2;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
+import com.amazonaws.services.ec2.model.Address;
 import com.amazonaws.services.ec2.model.DescribeVolumesResult;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.IpPermission;
@@ -34,6 +35,8 @@ public class EC2UtilsImplTest {
     private List<Instance> allInstances = new ArrayList<>();
     private List<Volume> allEBSRootVolumes = new ArrayList<>();
     private Volume volume1,volume2,volume3;
+    private List<Address> allEIPs = new ArrayList<>();
+    private Address address1,address2;
     
     public EC2UtilsImplTest() {
     }
@@ -102,6 +105,12 @@ public class EC2UtilsImplTest {
         
         allEBSRootVolumes = Arrays.asList(allEBSVolumes.get(0));
         
+        // EIPs
+        Address address1 = new Address();
+        Address address2 = new Address();
+        allEIPs.addAll(Arrays.asList(address1,address2));
+        
+        
     }
     
     @Test
@@ -136,6 +145,12 @@ public class EC2UtilsImplTest {
         AmazonEC2 amazonEc2 = mock(AmazonEC2Client.class);
         when(amazonEc2.describeVolumes()).thenReturn(describeVolumesResult);
         assertEquals(2,describeVolumesResult.getVolumes().size());
+    }
+    
+    @Test(expected = AmazonClientException.class)
+    public void testGetAllEBSVolumesThrowsAmazonClientException() {
+        when(ec2UtilsImpl.getAllEBSVolumes()).thenThrow(AmazonClientException.class);
+        ec2UtilsImpl.getAllEBSVolumes();
     }
     
     
@@ -185,6 +200,34 @@ public class EC2UtilsImplTest {
         EC2UtilsImpl ec2UtilsImpl = mock(EC2UtilsImpl.class);
         when(ec2UtilsImpl.getAllInstances()).thenReturn(allInstances);
         assertEquals(2,allInstances.size());
+    }
+    
+    @Test(expected = AmazonClientException.class)
+    public void testGetAllInstancesThrowsAmazonClientException() {
+        when(ec2UtilsImpl.getAllInstances()).thenThrow(AmazonClientException.class);
+        ec2UtilsImpl.getAllInstances();
+    }
+    
+    @Test
+    public void testGetAllEIPs() {
+        
+        EC2UtilsImpl ec2UtilsImpl = mock(EC2UtilsImpl.class);
+        when(ec2UtilsImpl.getAllEIPs()).thenReturn(allEIPs);
+        assertEquals(2, allEIPs.size());
+    }
+    
+    @Test(expected = AmazonClientException.class)
+    public void testGetAllEIPsThrowsAmazonClientException() {
+        when(ec2UtilsImpl.getAllEIPs()).thenThrow(AmazonClientException.class);
+        ec2UtilsImpl.getAllEIPs();
+    }
+    
+    @Test
+    public void testGetAllUnusedEIPs() {
+        
+        EC2UtilsImpl ec2UtilsImpl = new EC2UtilsImpl();
+        List<Address> allUnusedEIPs = ec2UtilsImpl.getAllUnusedEIPs(allEIPs);
+        assertEquals(2, allUnusedEIPs.size());
     }
 
    

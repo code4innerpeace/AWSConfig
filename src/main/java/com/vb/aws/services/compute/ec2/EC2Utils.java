@@ -6,6 +6,7 @@
 package com.vb.aws.services.compute.ec2;
 
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.services.ec2.model.Address;
 import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.SecurityGroup;
 import com.amazonaws.services.ec2.model.Volume;
@@ -31,6 +32,12 @@ public interface EC2Utils {
     public List<Volume> getAllNonEncryptedEBSVolumes(List<Volume> allEBSVolumes);
     public List<Volume> getAllEBSNonRootVolumes(List<Volume> allEBSVolumes, List<Volume> allEBSRootVolumes);
     public List<Volume> getAllEBSRootVolumes();
+    
+    // Cost Optimization
+    public List<Volume> getEBSVolumesAvailable(List<Volume> allEBSVolumes);
+    public List<Address> getAllEIPs() throws AmazonClientException;
+    public List<Address> getAllUnusedEIPs(List<Address> allEIPs);
+    
 
     
 }
