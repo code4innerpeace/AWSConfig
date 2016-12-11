@@ -64,6 +64,7 @@ public class IamUtilsImplTest {
     
     @Test(expected = AmazonClientException.class)
     public void testGetAllIamUsersThrowsAmazonClientException() {
+        IamUtilsImpl iamUtilsImpl = mock(IamUtilsImpl.class);
         when(iamUtilsImpl.getAllIamUsers()).thenThrow(AmazonClientException.class);
         iamUtilsImpl.getAllIamUsers();
     }
