@@ -53,6 +53,14 @@ public class EC2UtilsImpl implements EC2Utils {
     }
     
     /**
+     * Default constructor.
+     */
+    public EC2UtilsImpl(Regions region) {
+        this.amazonEc2 = new AmazonEC2Client();
+        this.amazonElasticLoadBalancing = new AmazonElasticLoadBalancingClient();
+    }
+    
+    /**
      * This method fetches all security groups in an aws account.
      * @return List<SecurityGroup> returns all security groups.
      * @throws AmazonClientException 
