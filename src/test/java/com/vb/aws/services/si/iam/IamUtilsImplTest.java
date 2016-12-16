@@ -46,7 +46,7 @@ public class IamUtilsImplTest {
         mfaDevice1.setUserName(user2.getUserName());
         
         User user3 = new User();
-        user3.setUserName("VASVijay3@pearson.com");
+        user3.setUserName("VASVijay3@vastech.com");
         MFADevice mfaDevice2 = new MFADevice();
         mfaDevice2.setUserName(user3.getUserName());
         
