@@ -12,19 +12,25 @@ Being part of AWS Security and Infrastructure team, I was looking out for some s
 3. If our applications and AWS resources are fault tolerant.
 4. Analyzing performance of resources and applications.
 
-Fault tolerance by default identifies AWS resources which are not following above standards but it's limited to specific set of rules defined by AWS. I wanted to extend this functionality further, so I had chosen AWS Config service as solution to solve above issues.
+Trusted Advisor by default identifies AWS resources which are not following above standards but it's limited to specific set of rules defined by AWS. I wanted to extend this functionality further, so I had chosen AWS Config service as solution to solve above issues.
 
 Config rule can be triggered in two ways.
 
     1. When configuration changes.
     2. Or periodically(1hr, 3h, 6hr, 12hrs, 24hrs)
 
-I had chosen second method "Period" as solution for our issue. I wanted to make sure our security policies defined are validated each hour.
+I had chosen second method "Periodic" as solution for our issue. I wanted to make sure our security policies defined are validated each hour.
 
 Also generally a config rule checks if each resource is "COMPLIANT" and "NONCOMPLIANT", but in this project I had filtered out all "COMPLIANT" resources in my utility classes.
 I was more interested in "NONCOMPLIANT" resources.
 
-## Following rules have been implemented as of today. I will be extending rules as and I get time. Please email me if anyone wants any specific rule to be implemented.
+## Requirements
+
+   Java 1.8  
+   Maven  
+   AWS SDK  
+
+## Following rules have been implemented as of today. 
 
 1. EBSVolumesAvailable :- This AWS Config rule lists all EBS Volumes which are available(Not attached to any resource). We can save cost by creating S3 Snapshot of these volumes
  and deleting these volumes. When we need the volume, we can just recreate the volume from S3 snapshot.
@@ -33,51 +39,52 @@ I was more interested in "NONCOMPLIANT" resources.
 4. NonCompliantSecurityGroups :- This AWS Config rule list all security groups which allows traffic from 0.0.0.0/0 from ports other than 80,443. Improves the security of AWS resources.
 5. NonEncryptedEBSVolumes :- This AWS Config rule list all EBS volumes which are not encrypted. Improves security of data at rest.
 
+Note :- I will be extending rules as and when I get time. Please send me an email if anyone wants any specific rule to be implemented.
+
 ## Steps to create AWS Lambda and AWS Config rule.
 
 1. Create S3 bucket and Upload the code.
 2. Create a new Lambda Role. Make sure you attach below policies to the role.
 
-Note :- Attached policies are generous and just listed for initial setup. Once you make sure Lambda is working as expected, fine tune the rules so that the role has access to only required resources. Follow Amazon Best Practices, only give access to resources which are absolutely required.
+   Note :- Attached policies are generous and just listed for initial setup. Once you make sure Lambda is working as expected, fine tune the rules so that the role has access to only required resources. Follow Amazon Best Practices, only give access to resources which are absolutely required. Also some of the managed policies are unnecessary if you are not using serivces like "API Gateway".
 
-Managed Policies: 
+   ##### Managed Policies: 
 
-AmazonEC2FullAccess
-IAMFullAccess
-AmazonAPIGatewayInvokeFullAccess
-AWSConfigRole
-AmazonAPIGatewayAdministrator
-AmazonCognitoPowerUser
-AWSSupportAccess
-CloudWatchLogsFullAccess
-AmazonS3FullAccess
+	 AmazonEC2FullAccess 
+ 	 IAMFullAccess 
+ 	 AmazonAPIGatewayInvokeFullAccess  
+	 AWSConfigRole  
+ 	 AmazonAPIGatewayAdministrator  
+ 	 AWSSupportAccess  
+ 	 CloudWatchLogsFullAccess  
+ 	AmazonS3FullAccess  
 
-Trusted Entities:
+   ##### Trusted Entities:
 
-The identity provider(s) lambda.amazonaws.com
+	The identity provider(s) lambda.amazonaws.com
 
 3. Create Lambda Function.
 
-Lambda Function --> Blank Function --> Next
+	Lambda Function --> Blank Function --> Next
 
-Name : LambdaFunctionName
-Runtime : Java 8
-Code Entry Type : Upload a file from Amazon S3
-S3 link URL : Jar file url which had been uploaded to S3 bucket.
-Handler :- For example :- com.vb.aws.services.mt.config.NonEncryptedEBSVolumes::handle
-Role :- Choose an existing role.
-Existing Role :- Select the role created in Step 2.
+	**Name** : LambdaFunctionName  
+	**Runtime** : Java 8  
+	**Code Entry Type** : Upload a file from Amazon S3  
+	**S3 link URL** : Jar file url which had been uploaded to S3 bucket.  
+	**Handler** :- For example :- com.vb.aws.services.mt.config.NonEncryptedEBSVolumes::handle  
+	**Role** :- Choose an existing role.  
+	**Existing Role** :- Select the role created in Step 2.  
 
-4) Create AWS Config Rule.
+4. Create AWS Config Rule.
 
-1) If creating Config rule for first time, it will start wizard. Please access default values.
-2) Create new Config Rule.
+  1. If creating Config rule for first time, it will start wizard. Please access default values.
+  2. Create new Config Rule.
 
-Rules --> Add Rule --> Custom Rule -->
+  Rules --> Add Rule --> Custom Rule -->
 
-Name: <ConfigRuleName>
-AWS Lambda function ARN: Lambda Function ARN created earlier. For example arn:aws:lambda:us-east-1:<ACCOUNT-NUMBER>:function:NonEncryptedEBSVolumes
-Trigger: Periodic(Select 1,3,6,12,24 hrs)
+  **Name** : ConfigRuleName  
+  **AWS Lambda function ARN** : Lambda Function ARN created earlier. For example arn:aws:lambda:us-east-1:<ACCOUNT-NUMBER>:function:NonEncryptedEBSVolumes  
+  **Trigger**: Periodic(Select 1,3,6,12,24 hrs)
 
 ## Debugging ##
 1. As soon as you create rule or click on "Re-evaluate" button, you should increase in AWS Lambda Invocation count by 1 on AWS Lambda Monitoring console.
@@ -89,16 +96,16 @@ Trigger: Periodic(Select 1,3,6,12,24 hrs)
 
 I would like to thank below for providing valuable support for turning this idea into real world project.
 
-Pearson Management Team :- Ian, Ryan, Craig.
-Jeff :- Thanks for giving suggestions on test cases.
-Anshul :- Thanks for listening to weird ideas and helping me to turn them into real world projects.
-Ilya :- Thanks for supporting me from Amazon side and forwarding my errors or weird ideas to product team.
-Ravi Ravva :- Thanks for creating initial AWS Config rules. I had got basic idea of how to write Config rules based on your code.
+Pearson Management Team :- Ian, Ryan, Craig.   
+Jeff :- Thanks for giving suggestions on test cases.  
+Anshul :- Thanks for listening to my weird ideas and helping me to turn them into real world projects.  
+Ilya :- Thanks for supporting me from Amazon side and forwarding my errors or weird ideas to product team.  
+Ravi Ravva :- Thanks for creating initial AWS Config rules. I had got basic idea of how to write Config rules based on your code. 
 
 
 ## References ##
 
-http://docs.aws.amazon.com/config/latest/developerguide/WhatIsConfig.html
-http://docs.aws.amazon.com/lambda/latest/dg/welcome.html
-https://github.com/awslabs/aws-config-rules
+1.http://docs.aws.amazon.com/config/latest/developerguide/WhatIsConfig.html  
+2.http://docs.aws.amazon.com/lambda/latest/dg/welcome.html  
+3.https://github.com/awslabs/aws-config-rules
 
