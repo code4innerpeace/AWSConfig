@@ -91,6 +91,14 @@ Note :- I will be extending rules as and when I get time. Please send me an emai
 2. Next check AWS Lambda CloudWatch logs.
 3. If there are no exceptions in Cloudwatch logs, you should see Config Rule updated with resources which are non-compliant.
 
+## Limitations
+1. Currently this code fetches NONCOMPLIANT resources from US-EAST-1 region only. If you need resources from all regions, then config rule code needs to iterate all regions.
+
+
+## Future Enhancements
+1. Fetch all NONCOMPLIANT from all regions.
+2. Implement config rule on multiple AWS accounts. Rules will be created in one AWS accounts, but they will be executed on all AWS accounts owned by us. 
+
 
 ## Acknowledgements ##
 

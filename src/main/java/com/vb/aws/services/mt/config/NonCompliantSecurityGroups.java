@@ -41,7 +41,7 @@ public class NonCompliantSecurityGroups {
     private static final String AWS_DEFAULT_REGION = "us-east-1";
     
     public void handle(ConfigEvent event, Context context) throws IOException {
-        System.out.println("INFO: NonCompliantSecurityGroups Testing");
+        
         
         Regions region = Regions.fromName(System.getenv(AWS_REGION_PROPERTY));
         
