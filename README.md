@@ -85,4 +85,20 @@ Trigger: Periodic(Select 1,3,6,12,24 hrs)
 3. If there are no exceptions in Cloudwatch logs, you should see Config Rule updated with resources which are non-compliant.
 
 
+## Acknowledgements ##
+
+I would like to thank below for providing valuable support for turning this idea into real world project.
+
+Pearson Management Team :- Ian, Ryan, Craig.
+Jeff :- Thanks for giving suggestions on test cases.
+Anshul :- Thanks for listening to weird ideas and helping me to turn them into real world projects.
+Ilya :- Thanks for supporting me from Amazon side and forwarding my errors or weird ideas to product team.
+Ravi Ravva :- Thanks for creating initial AWS Config rules. I had got basic idea of how to write Config rules based on your code.
+
+
+## References ##
+
+http://docs.aws.amazon.com/config/latest/developerguide/WhatIsConfig.html
+http://docs.aws.amazon.com/lambda/latest/dg/welcome.html
+https://github.com/awslabs/aws-config-rules
 
