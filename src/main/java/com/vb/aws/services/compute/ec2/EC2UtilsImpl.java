@@ -53,7 +53,8 @@ public class EC2UtilsImpl implements EC2Utils {
     }
     
     /**
-     * Default constructor.
+     * Parameterized constructor. Pass the AWS Region as parameter.
+     * @param region 
      */
     public EC2UtilsImpl(Regions region) {
         this.amazonEc2 = new AmazonEC2Client();

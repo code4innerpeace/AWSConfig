@@ -77,7 +77,7 @@ Note :- I will be extending rules as and when I get time. Please send me an emai
 
 4. Create AWS Config Rule.
 
-  1. If creating Config rule for first time, it will start wizard. Please access default values.
+  1. If creating Config rule for first time, it will start wizard. Please accept default values.
   2. Create new Config Rule.
 
   Rules --> Add Rule --> Custom Rule -->
@@ -96,8 +96,9 @@ Note :- I will be extending rules as and when I get time. Please send me an emai
 
 
 ## Future Enhancements
-1. Fetch all NONCOMPLIANT from all regions.
+1. Fetch all NONCOMPLIANT resources from all regions.
 2. Implement config rule on multiple AWS accounts. Rules will be created in one AWS accounts, but they will be executed on all AWS accounts owned by us. 
+3. Evaluating performance and tuning of Lambda functions.
 
 
 ## Acknowledgements ##
